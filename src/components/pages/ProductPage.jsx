@@ -12,7 +12,16 @@ function ProductPage() {
     const [error, setError] = useState(null);
     const [notification, setNotification] = useState(null);
     const { addToCart, isInCart } = useContext(CartContext);
-    const { currentUser, addToWishlist, isInWishlist, removeFromWishlist, wishlistLoading } = useContext(AuthContext);
+    const {
+        currentUser,
+        addToWishlist,
+        isInWishlist,
+        removeFromWishlist,
+        wishlistLoading
+    } = useContext(AuthContext);
+
+    // Додали стан для відстеження статусу товару в списку бажаного
+    const [inWishlist, setInWishlist] = useState(false);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -37,6 +46,15 @@ function ProductPage() {
         fetchProduct();
     }, [id]);
 
+    // Update wishlist status when product or currentUser changes
+    useEffect(() => {
+        if (currentUser && product) {
+            setInWishlist(isInWishlist(product.id));
+        } else {
+            setInWishlist(false);
+        }
+    }, [currentUser, product, isInWishlist]);
+
     // Show notifications
     const showNotification = (message, type = 'success') => {
         setNotification({ message, type });
@@ -57,14 +75,16 @@ function ProductPage() {
                 return;
             }
 
-            if (isInWishlist(product.id)) {
+            if (inWishlist) {
                 const result = await removeFromWishlist(product.id);
                 if (result.success) {
+                    setInWishlist(false);
                     showNotification('Товар видалено зі списку бажаного');
                 }
             } else {
                 const result = await addToWishlist(product);
                 if (result.success) {
+                    setInWishlist(true);
                     showNotification('Товар додано до списку бажаного');
                 }
             }
@@ -102,7 +122,6 @@ function ProductPage() {
     };
 
     const renderWishlistButton = () => {
-        const inWishlist = currentUser && isInWishlist(product.id);
         return (
             <button
                 id="add-to-wishlist"
