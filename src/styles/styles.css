@@ -1,0 +1,154 @@
+/* Base styles for all pages */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    animation: fadeIn 1s forwards;
+    opacity: 0;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Header Styles */
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    height: 100px;
+    background: #333;
+}
+
+header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    background: #333;
+}
+
+.logo {
+    color: white;
+    margin: 0;
+    font-size: 28px;
+}
+
+.logo-link {
+    text-decoration: none;
+}
+
+/* Navigation Styles */
+nav {
+    display: flex;
+    justify-content: center;
+    background: #444;
+    padding: 0;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 80px;
+    margin: 0;
+    background: linear-gradient(135deg, #000000, #000000);
+    border-radius: 0;
+    transition: background 0.3s, transform 0.2s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: inline-block;
+    font-size: 16px;
+}
+
+nav a:hover {
+    text-shadow: 2px 2px black;
+    background: linear-gradient(135deg, #222222, #111111);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+nav a:hover span {
+    display: inline-block;
+    transform: scale(1.1);
+    transition: transform 0.2s ease-in-out;
+}
+
+nav a span {
+    display: inline-block;
+    transition: transform 0.2s ease-in-out;
+}
+
+nav a:active {
+    transform: scale(1.05);
+    text-decoration-color: white;
+    background: linear-gradient(135deg, #ffffff, #ffffff);
+}
+
+/* Cart Button Styles */
+.cart-button {
+    text-decoration: none;
+    color: white;
+    font-size: 18px;
+    background: #ff6600;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+.cart-button:hover {
+    background: #e55d00;
+}
+
+/* Footer Styles */
+footer {
+    background: #333;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    header, .main-header {
+        height: 80px;
+    }
+
+    nav {
+        flex-direction: column;
+    }
+
+    nav a {
+        padding: 8px 50px;
+        font-size: 14px;
+    }
+
+    footer {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    header, .main-header {
+        height: 60px;
+        padding: 10px;
+    }
+
+    nav {
+        flex-direction: column;
+    }
+
+    nav a {
+        padding: 6px 30px;
+        font-size: 12px;
+    }
+
+    footer {
+        padding: 10px;
+    }
+}

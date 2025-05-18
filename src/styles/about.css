@@ -1,0 +1,142 @@
+/* About Page Advantage Sections */
+.advantages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 10px;
+}
+
+/* Common advantage block styles */
+.advantage {
+    width: 100vw;
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    padding: 50px 10px;
+    box-sizing: border-box;
+    transition: transform 0.3s ease-in-out;
+    text-align: center;
+
+    /* Animation */
+    opacity: 0;
+    transform: translateY(50px);
+    animation: fadeInUp 1s ease-out forwards;
+}
+
+/* Vertical line before heading */
+.advantage h3 {
+    position: relative;
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: letter-spacing 0.3s ease-in-out;
+}
+
+.advantage h3::before {
+    content: "";
+    display: block;
+    width: 4px;
+    height: 40px;
+    background-color: white;
+    margin-right: 15px;
+}
+
+/* Individual advantage section styling */
+.advantage--first {
+    background: url("background_placeholder.jpg") center/cover no-repeat;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    color: white;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.9);
+    padding-left: 5%;
+    padding-right: 10%;
+}
+
+.advantage--second {
+    background: url("background_placeholder2.jpg") center/cover no-repeat;
+    display: flex;
+    color: white;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.9);
+    padding-left: 5%;
+    padding-right: 10%;
+}
+
+.advantage--third {
+    background: url("background_placeholder3.jpg") center/cover no-repeat;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    text-align: right;
+    color: white;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.9);
+    padding-left: 5%;
+    padding-right: 10%;
+}
+
+.advantage--fourth {
+    background: url("background_placeholder4.jpg") center/cover no-repeat;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    color: white;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.9);
+    padding-left: 5%;
+    padding-right: 10%;
+}
+
+.advantage--fifth {
+    background-color: #110f0fec;
+}
+
+/* Hover effects */
+.advantage:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.7);
+}
+
+.advantage:hover h3 {
+    letter-spacing: 2px;
+}
+
+.advantage p {
+    transition: transform 0.3s ease-in-out;
+}
+
+.advantage:hover p {
+    transform: scale(1.05);
+}
+
+/* Animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .advantage {
+        min-height: 450px;
+    }
+}
+
+@media (max-width: 480px) {
+    .advantage {
+        min-height: 350px;
+        padding: 30px 5px;
+    }
+}
