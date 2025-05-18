@@ -12,9 +12,11 @@ function ProfilePage() {
         fullName: '',
         email: ''
     });
-    const [activeTab, setActiveTab] = useState('purchases'); // 'purchases' or 'wishlist'
+    const [activeTab, setActiveTab] = useState('wishlist'); // Changed default tab to 'wishlist' to test
+    const [wishlistItems, setWishlistItems] = useState([]);
     const navigate = useNavigate();
 
+    // Update user data when currentUser changes
     useEffect(() => {
         if (!currentUser) {
             navigate('/login');
@@ -25,6 +27,11 @@ function ProfilePage() {
             fullName: currentUser.displayName || '',
             email: currentUser.email || ''
         });
+
+        // Update wishlist items state from currentUser
+        if (currentUser.wishlist) {
+            setWishlistItems(currentUser.wishlist);
+        }
     }, [currentUser, navigate]);
 
     const handleLogout = async () => {
@@ -70,13 +77,24 @@ function ProfilePage() {
         alert(`${product.name} додано до кошику!`);
     };
 
-    const handleRemoveFromWishlist = (productId) => {
-        removeFromWishlist(productId);
+    const handleRemoveFromWishlist = async (productId) => {
+        try {
+            const result = await removeFromWishlist(productId);
+            if (result.success) {
+                // Оновлення локального стану списку бажаного
+                setWishlistItems(prevItems => prevItems.filter(item => item.id !== productId));
+            }
+        } catch (error) {
+            console.error('Failed to remove from wishlist:', error);
+        }
     };
 
     if (!currentUser) {
         return <div>Loading...</div>;
     }
+
+    // Ensure wishlist is always an array
+    const wishlist = currentUser.wishlist || [];
 
     return (
         <section className="profile-container">
@@ -162,9 +180,11 @@ function ProfilePage() {
             {activeTab === 'wishlist' && (
                 <div className="profile-section">
                     <h3>Wishlist</h3>
-                    {currentUser.wishlist && currentUser.wishlist.length > 0 ? (
+                    {/* Додано консоль-лог для налагодження */}
+                    {console.log('Current wishlist items:', wishlist)}
+                    {wishlist && wishlist.length > 0 ? (
                         <div className="wishlist-items">
-                            {currentUser.wishlist.map((item, index) => (
+                            {wishlist.map((item, index) => (
                                 <div key={index} className="wishlist-item">
                                     <img src={item.image} alt={item.name} />
                                     <div className="wishlist-item-info">
