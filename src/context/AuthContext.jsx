@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [wishlistLoading, setWishlistLoading] = useState(false);
+    const [lastWishlistUpdate, setLastWishlistUpdate] = useState(null);
 
     // Register a new user
     const register = async (email, password, displayName) => {
@@ -89,13 +90,18 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Improved addToWishlist function
+    /**
+     * Improved addToWishlist function with better state management and error handling
+     * @param {Object} product - The product to add to wishlist
+     * @returns {Promise<Object>} - Result of the operation
+     */
     const addToWishlist = async (product) => {
         try {
             if (!currentUser) {
                 throw new Error('User not authenticated');
             }
 
+            // Set loading state
             setWishlistLoading(true);
 
             // Check if product is already in wishlist locally
@@ -105,6 +111,7 @@ export const AuthProvider = ({ children }) => {
                 return { success: true, message: 'Product already in wishlist' };
             }
 
+            // Get authentication token
             const token = await auth.currentUser.getIdToken();
 
             // Send request to API
@@ -126,13 +133,14 @@ export const AuthProvider = ({ children }) => {
             // Parse response data
             const data = await response.json();
 
-            // FIXED: Правильне оновлення локального стану користувача
+            // Update local user state with optimistic update
             setCurrentUser(prevUser => {
-                // Перевіряємо, чи вже є wishlist масив у користувача
-                const currentWishlist = prevUser.wishlist || [];
-                // Перевіряємо чи товар вже є в списку
+                // Make sure wishlist is always an array
+                const currentWishlist = Array.isArray(prevUser.wishlist) ? prevUser.wishlist : [];
+
+                // Check if product is already in the list
                 if (!currentWishlist.some(item => item.id === product.id)) {
-                    // Додаємо новий товар до списку
+                    // Add new product to the list
                     return {
                         ...prevUser,
                         wishlist: [...currentWishlist, product]
@@ -141,6 +149,8 @@ export const AuthProvider = ({ children }) => {
                 return prevUser;
             });
 
+            // Record time of update for potential refreshes
+            setLastWishlistUpdate(new Date());
             setWishlistLoading(false);
             return { success: true, message: data.message || 'Product added to wishlist' };
         } catch (error) {
@@ -150,7 +160,11 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Improved removeFromWishlist function
+    /**
+     * Improved removeFromWishlist function with better state management
+     * @param {string} productId - ID of the product to remove
+     * @returns {Promise<Object>} - Result of the operation
+     */
     const removeFromWishlist = async (productId) => {
         try {
             if (!currentUser) {
@@ -159,7 +173,10 @@ export const AuthProvider = ({ children }) => {
 
             setWishlistLoading(true);
 
+            // Get authentication token
             const token = await auth.currentUser.getIdToken();
+
+            // Call API to remove item
             const response = await fetch(`/api/wishlist/remove/${productId}`, {
                 method: 'DELETE',
                 headers: {
@@ -167,6 +184,7 @@ export const AuthProvider = ({ children }) => {
                 }
             });
 
+            // Check for API errors
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to remove from wishlist');
@@ -174,10 +192,10 @@ export const AuthProvider = ({ children }) => {
 
             const data = await response.json();
 
-            // FIXED: Правильне оновлення локального стану після видалення
+            // Update local state with optimistic update
             setCurrentUser(prevUser => {
-                // Перевіряємо наявність списку бажаного
-                if (prevUser && prevUser.wishlist) {
+                // Ensure wishlist exists and is an array
+                if (prevUser && Array.isArray(prevUser.wishlist)) {
                     return {
                         ...prevUser,
                         wishlist: prevUser.wishlist.filter(item => item.id !== productId)
@@ -186,6 +204,8 @@ export const AuthProvider = ({ children }) => {
                 return prevUser;
             });
 
+            // Record time of update for potential refreshes
+            setLastWishlistUpdate(new Date());
             setWishlistLoading(false);
             return { success: true, message: data.message || 'Product removed from wishlist' };
         } catch (error) {
@@ -195,15 +215,69 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Check if product is in wishlist
+    /**
+     * Check if product is in wishlist
+     * @param {string} productId - ID of the product to check
+     * @returns {boolean} - True if product is in wishlist
+     */
     const isInWishlist = (productId) => {
-        if (!currentUser || !currentUser.wishlist) {
+        if (!currentUser || !Array.isArray(currentUser.wishlist)) {
             return false;
         }
         return currentUser.wishlist.some(item => item.id === productId);
     };
 
-    // Initialize user data with wishlist and purchase history
+    /**
+     * Refreshes wishlist data from the server
+     * @returns {Promise<Array>} - The updated wishlist
+     */
+    const refreshWishlist = async () => {
+        try {
+            if (!currentUser || !currentUser.uid) {
+                return [];
+            }
+
+            // Get authentication token
+            const token = await auth.currentUser.getIdToken();
+
+            // Fetch wishlist from API
+            const response = await fetch('/api/wishlist', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to refresh wishlist');
+            }
+
+            const data = await response.json();
+
+            // Ensure wishlist is always an array
+            const wishlistData = Array.isArray(data.wishlist) ? data.wishlist : [];
+
+            // Update user state with fresh data
+            setCurrentUser(prevUser => ({
+                ...prevUser,
+                wishlist: wishlistData
+            }));
+
+            // Update the last refresh timestamp
+            setLastWishlistUpdate(new Date());
+
+            return wishlistData;
+        } catch (error) {
+            console.error('Error refreshing wishlist:', error);
+            return currentUser?.wishlist || [];
+        }
+    };
+
+    /**
+     * Initialize user data with wishlist and purchase history
+     * @param {Object} user - Firebase user object
+     */
     const initializeUserData = async (user) => {
         if (!user) {
             setCurrentUser(null);
@@ -225,7 +299,7 @@ export const AuthProvider = ({ children }) => {
             if (response.ok) {
                 const data = await response.json();
 
-                // FIXED: Переконуємося, що wishlist завжди масив
+                // Ensure wishlist is always an array
                 const wishlistData = Array.isArray(data.wishlist) ? data.wishlist : [];
 
                 // Get purchase history (in a real app, this would be another API endpoint)
@@ -242,6 +316,9 @@ export const AuthProvider = ({ children }) => {
                     wishlist: wishlistData,
                     purchaseHistory: purchaseHistory
                 });
+
+                // Set the initial wishlist update timestamp
+                setLastWishlistUpdate(new Date());
             } else {
                 console.warn('Failed to fetch wishlist data, initializing with empty array');
                 // Set basic user data without wishlist
@@ -284,36 +361,25 @@ export const AuthProvider = ({ children }) => {
         return unsubscribe;
     }, []);
 
-    // ADDED: Додаткове отримання списку бажаного при зміні користувача
+    // Auto-refresh wishlist periodically when user is logged in
     useEffect(() => {
-        const refreshWishlist = async () => {
-            if (currentUser && currentUser.uid) {
-                try {
-                    const token = await auth.currentUser.getIdToken();
-                    const response = await fetch('/api/wishlist', {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
+        let refreshInterval;
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.wishlist && Array.isArray(data.wishlist)) {
-                            setCurrentUser(prevUser => ({
-                                ...prevUser,
-                                wishlist: data.wishlist
-                            }));
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error refreshing wishlist:', error);
-                }
+        if (currentUser?.uid) {
+            // Refresh immediately on mount
+            refreshWishlist();
+
+            // Set up periodic refresh (every 5 minutes)
+            refreshInterval = setInterval(() => {
+                refreshWishlist();
+            }, 5 * 60 * 1000);
+        }
+
+        return () => {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
             }
         };
-
-        // Викликаємо функцію для оновлення даних
-        refreshWishlist();
     }, [currentUser?.uid]);
 
     const value = {
@@ -326,8 +392,10 @@ export const AuthProvider = ({ children }) => {
         addToWishlist,
         removeFromWishlist,
         isInWishlist,
+        refreshWishlist,
         loading,
-        wishlistLoading
+        wishlistLoading,
+        lastWishlistUpdate
     };
 
     return (

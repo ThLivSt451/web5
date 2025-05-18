@@ -1,4 +1,4 @@
-// server.js - Express server for MovEx application
+// server.js - Updated Express server with additional routes
 const express = require('express');
 const path = require('path');
 const admin = require('firebase-admin');
@@ -60,9 +60,11 @@ app.get('/api/health', (req, res) => {
 
 // Import API routes
 const wishlistRoutes = require('./api/wishlist');
+const purchaseHistoryRoutes = require('./api/purchase-history');
 
 // API routes
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/purchase-history', purchaseHistoryRoutes);
 
 // Handle all other routes by serving the React app
 // This ensures React Router can handle client-side routing
