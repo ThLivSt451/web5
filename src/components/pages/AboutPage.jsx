@@ -6,39 +6,39 @@ function AboutPage() {
         <div className="container">
             <section className="advantages">
                 <div className="advantage advantage--first">
-                    <h3>Широкий асортимент</h3>
-                    <p>Ми пропонуємо не лише найкраще спортивне спорядження, але й товари, що відповідають останнім тенденціям у світі спорту.
-                        <br />Від інноваційних до класичних, у нас є все для вашого активного способу життя.
-                        <br />Незалежно від того, чи шукаєте ви професійне спорядження, чи просто хочете почати тренуватися, ви знайдете те, що вам підходить.</p>
+                    <h3>Wide assortment</h3>
+                    <p>We offer not only the best sports equipment, but also products that meet the latest trends in the world of sports.
+                        <br />From innovative to classic, we have everything for your active lifestyle.
+                        <br />Whether you're looking for professional equipment or just want to start training, you'll find what's right for you.</p>
                 </div>
 
                 <div className="advantage advantage--second">
-                    <h3>Зручна доставка</h3>
-                    <p>Ми цінуємо ваш час і прагнемо зробити процес покупки максимально комфортним. Завдяки нашій налагодженій логістиці ми швидко доставляємо замовлення по всій країні.<br />
-                        Ви можете обрати найзручніший спосіб отримання товару – кур'єрську доставку, самовивіз або поштові служби.</p>
+                    <h3>Convenient delivery</h3>
+                    <p>We value your time and strive to make the purchase process as comfortable as possible. Thanks to our well-established logistics, we quickly deliver orders throughout the country.<br />
+                        You can choose the most convenient way to receive the goods - courier delivery, self-pickup or postal services.</p>
                 </div>
 
                 <div className="advantage advantage--third">
-                    <h3>Гарантія якості</h3>
-                    <p>Усі товари в нашому магазині ретельно відібрані та відповідають найвищим стандартам якості.<br />
-                        Ми працюємо лише з офіційними постачальниками та перевіреними брендами (такими як Nike, Adidas, Puma та інші), <br />
-                        тому ви можете бути впевнені в оригінальності та довговічності продукції.</p>
+                    <h3>Quality guarantee</h3>
+                    <p>All products in our store are carefully selected and meet the highest quality standards.<br />
+                        We work only with official suppliers and proven brands (such as Nike, Adidas, Puma and others), <br />
+                        so you can be sure of the originality and durability of the products.</p>
                 </div>
 
                 <div className="advantage advantage--fourth">
-                    <h3>Підтримка</h3>
-                    <p>Не знаєте, який продукт вам підійде? Наші консультанти – люди, які захоплені спортом і знають про нього толк. <br />
-                        Ми допоможемо вам зробити правильний вибір відповідно до ваших потреб, рівня підготовки та бюджету.<br />
-                        Ми прагнемо не лише продавати спортивне спорядження, а й допомогти вам досягти нових висот у спорті та активному житті. <br />
-                        Дякуємо, що обрали MoveX!</p>
+                    <h3>Support</h3>
+                    <p>Not sure which product is right for you? Our consultants - people who are passionate about sports and know a lot about it. <br />
+                        We will help you make the right choice according to your needs, level of training and budget.<br />
+                        We strive not only to sell sports equipment, but to help you reach new heights in sports and an active life. <br />
+                        Thank you for choosing MoveX!</p>
                 </div>
 
                 <div className="advantage advantage--fifth">
-                    <h3>Контакти</h3>
-                    <p><strong>Адреса:</strong> вул. Енергійна, 15, Київ, Україна</p>
-                    <p><strong>Електронна пошта:</strong> movex_support@gmail.com</p>
-                    <p><strong>Телефон:</strong> +38 (068) 654-32-10</p>
-                    <p><strong>Години роботи:</strong> Пн-Сб: 9:00 - 19:00, Нд: вихідний</p>
+                    <h3>Contacts</h3>
+                    <p><strong>Address:</strong> Energiyna St., 15, Kyiv, Ukraine</p>
+                    <p><strong>Email:</strong> movex_support@gmail.com</p>
+                    <p><strong>Phone:</strong> +38 (068) 654-32-10</p>
+                    <p><strong>Working hours:</strong> Mon-Sat: 9:00 - 19:00, Sun: closed</p>
                 </div>
             </section>
         </div>

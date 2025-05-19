@@ -18,7 +18,7 @@ function ForgotPasswordPage() {
 
         try {
             await resetPassword(email);
-            setMessage('Перевірте скриньку!');
+            setMessage('Password reset email sent. Check your inbox.');
         } catch (err) {
             console.error('Password reset error:', err);
             setError(err.message || 'Failed to reset password');
@@ -51,12 +51,12 @@ function ForgotPasswordPage() {
                         className="auth-button"
                         disabled={loading}
                     >
-                        {loading ? 'Надсилаємо...' : 'Скинути пароль'}
+                        {loading ? 'Sending...' : 'Reset Password'}
                     </button>
                 </form>
 
                 <div className="auth-links">
-                    <p>Remember your password? <Link to="/login">Увійти</Link></p>
+                    <p>Remember your password? <Link to="/login">Login</Link></p>
                 </div>
             </div>
         </div>
