@@ -8,7 +8,7 @@ function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useContext(AuthContext);
+    const { login, signInWithGoogle } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -22,6 +22,21 @@ function LoginPage() {
         } catch (err) {
             console.error('Login error:', err);
             setError(err.message || 'Failed to log in');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleSignIn = async () => {
+        setError('');
+        setLoading(true);
+
+        try {
+            await signInWithGoogle();
+            navigate('/profile');
+        } catch (err) {
+            console.error('Google sign-in error:', err);
+            setError(err.message || 'Failed to sign in with Google');
         } finally {
             setLoading(false);
         }
@@ -64,6 +79,23 @@ function LoginPage() {
                         {loading ? 'Logging in...' : 'Login'}
                     </button>
                 </form>
+
+                <div className="auth-separator">
+                    <span>or</span>
+                </div>
+
+                <button
+                    onClick={handleGoogleSignIn}
+                    className="google-auth-button"
+                    disabled={loading}
+                >
+                    <img
+                        src="https://cdn.cdnlogo.com/logos/g/35/google-icon.svg"
+                        alt="Google Logo"
+                        className="google-logo"
+                    />
+                    Sign in with Google
+                </button>
 
                 <div className="auth-links">
                     <p>Don't have an account? <Link to="/register">Register</Link></p>

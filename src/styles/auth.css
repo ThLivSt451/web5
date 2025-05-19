@@ -1,4 +1,4 @@
-/* Authentication button styles in Header */
+   /* Authentication button styles in Header */
 .auth-links-header {
     display: flex;
     align-items: center;
@@ -184,6 +184,65 @@
     text-decoration: underline;
 }
 
+/* Google Sign In Button Styles */
+.google-auth-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px;
+    background-color: white;
+    color: #444;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.google-auth-button:hover {
+    background-color: #f8f8f8;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.google-auth-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.google-logo {
+    width: 18px;
+    height: 18px;
+}
+
+/* Auth separator with "or" text */
+.auth-separator {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+    color: #777;
+    font-size: 14px;
+}
+
+.auth-separator::before,
+.auth-separator::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: #ddd;
+}
+
+.auth-separator span {
+    padding: 0 10px;
+}
+
 /* Profile editing action buttons */
 .edit-actions {
     display: flex;
@@ -355,6 +414,11 @@
     }
 
     .auth-button {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .google-auth-button {
         padding: 8px;
         font-size: 14px;
     }

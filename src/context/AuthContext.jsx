@@ -6,7 +6,9 @@ import {
     signOut,
     sendPasswordResetEmail,
     updateProfile,
-    onAuthStateChanged
+    onAuthStateChanged,
+    GoogleAuthProvider,
+    signInWithPopup
 } from 'firebase/auth';
 import {
     doc,
@@ -52,6 +54,33 @@ export const AuthProvider = ({ children }) => {
             return userCredential.user;
         } catch (error) {
             console.error('Login error:', error);
+            throw error;
+        }
+    };
+
+    // Google sign in
+    const signInWithGoogle = async () => {
+        try {
+            const provider = new GoogleAuthProvider();
+            const userCredential = await signInWithPopup(auth, provider);
+
+            // Check if user exists in Firestore
+            const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+
+            // If user doesn't exist in Firestore yet, create them
+            if (!userDoc.exists()) {
+                await setDoc(doc(db, 'users', userCredential.user.uid), {
+                    email: userCredential.user.email,
+                    displayName: userCredential.user.displayName || '',
+                    photoURL: userCredential.user.photoURL || '',
+                    wishlist: [],
+                    purchaseHistory: []
+                });
+            }
+
+            return userCredential.user;
+        } catch (error) {
+            console.error('Google sign in error:', error);
             throw error;
         }
     };
@@ -222,7 +251,7 @@ export const AuthProvider = ({ children }) => {
                     uid: user.uid,
                     email: user.email,
                     displayName: user.displayName || userData.displayName,
-                    photoURL: user.photoURL,
+                    photoURL: user.photoURL || userData.photoURL,
                     emailVerified: user.emailVerified,
                     wishlist: userData.wishlist || [],
                     purchaseHistory: userData.purchaseHistory || []
@@ -232,6 +261,7 @@ export const AuthProvider = ({ children }) => {
                 await setDoc(doc(db, 'users', user.uid), {
                     email: user.email,
                     displayName: user.displayName || '',
+                    photoURL: user.photoURL || '',
                     wishlist: [],
                     purchaseHistory: []
                 });
@@ -286,6 +316,7 @@ export const AuthProvider = ({ children }) => {
         removeFromWishlist,
         addToPurchaseHistory,
         isInWishlist,
+        signInWithGoogle,
         loading
     };
 

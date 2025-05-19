@@ -29,7 +29,8 @@ try {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Security and optimization middleware
+// Оновлені налаштування ContentSecurityPolicy в server.js
+
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -37,8 +38,8 @@ app.use(helmet({
             scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://www.gstatic.com", "https://*.firebaseio.com", "https://apis.google.com"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "data:", "https://*.firebasestorage.app", "https://firebasestorage.googleapis.com"],
-            connectSrc: ["'self'", "https://*.firebaseio.com", "https://*.firebasestorage.app", "https://firestore.googleapis.com", "wss://*.firebaseio.com"]
+            imgSrc: ["'self'", "data:", "https://*.firebasestorage.app", "https://firebasestorage.googleapis.com", "https://cdn.cdnlogo.com"],
+            connectSrc: ["'self'", "https://*.firebaseio.com", "https://*.firebasestorage.app", "https://firestore.googleapis.com", "wss://*.firebaseio.com", "https://accounts.google.com", "https://identitytoolkit.googleapis.com"]
         }
     }
 }));
