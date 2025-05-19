@@ -18,11 +18,11 @@ function RegisterPage() {
         setError('');
 
         if (password !== confirmPassword) {
-            return setError('Паролі не сходяться');
+            return setError('Passwords do not match');
         }
 
         if (password.length < 6) {
-            return setError('Пароль повинен бути більше 6 символів');
+            return setError('Password must be at least 6 characters long');
         }
 
         setLoading(true);
@@ -32,7 +32,7 @@ function RegisterPage() {
             navigate('/profile');
         } catch (err) {
             console.error('Registration error:', err);
-            setError(err.message || 'Помилка при створені акаунту');
+            setError(err.message || 'Failed to create an account');
         } finally {
             setLoading(false);
         }
@@ -46,7 +46,7 @@ function RegisterPage() {
 
                 <form onSubmit={handleSubmit} className="auth-form">
                     <div className="form-group">
-                        <label htmlFor="fullName">Ім'я аккаунту</label>
+                        <label htmlFor="fullName">Full Name</label>
                         <input
                             type="text"
                             id="fullName"
@@ -57,7 +57,7 @@ function RegisterPage() {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="email">Ел. Адреса</label>
+                        <label htmlFor="email">Email</label>
                         <input
                             type="email"
                             id="email"
@@ -68,7 +68,7 @@ function RegisterPage() {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="password">Пароль</label>
+                        <label htmlFor="password">Password</label>
                         <input
                             type="password"
                             id="password"
@@ -79,7 +79,7 @@ function RegisterPage() {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="confirmPassword">Підтвердження паролю</label>
+                        <label htmlFor="confirmPassword">Confirm Password</label>
                         <input
                             type="password"
                             id="confirmPassword"
@@ -94,12 +94,12 @@ function RegisterPage() {
                         className="auth-button"
                         disabled={loading}
                     >
-                        {loading ? 'Створюємо акаунт...' : 'Зареєструватись'}
+                        {loading ? 'Creating account...' : 'Register'}
                     </button>
                 </form>
 
                 <div className="auth-links">
-                    <p>Уже маєте акаунт? <Link to="/login">Увійти</Link></p>
+                    <p>Already have an account? <Link to="/login">Login</Link></p>
                 </div>
             </div>
         </div>

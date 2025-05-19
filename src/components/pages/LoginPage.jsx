@@ -21,7 +21,7 @@ function LoginPage() {
             navigate('/profile');
         } catch (err) {
             console.error('Login error:', err);
-            setError(err.message || 'Помилка входу');
+            setError(err.message || 'Failed to log in');
         } finally {
             setLoading(false);
         }
@@ -30,12 +30,12 @@ function LoginPage() {
     return (
         <div className="auth-container">
             <div className="auth-form-container">
-                <h2>Увійти в MoveX</h2>
+                <h2>Login to MoveX</h2>
                 {error && <div className="auth-error">{error}</div>}
 
                 <form onSubmit={handleSubmit} className="auth-form">
                     <div className="form-group">
-                        <label htmlFor="email">Ел. Адреса</label>
+                        <label htmlFor="email">Email</label>
                         <input
                             type="email"
                             id="email"
@@ -46,7 +46,7 @@ function LoginPage() {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="password">Пароль</label>
+                        <label htmlFor="password">Password</label>
                         <input
                             type="password"
                             id="password"
@@ -61,13 +61,13 @@ function LoginPage() {
                         className="auth-button"
                         disabled={loading}
                     >
-                        {loading ? 'Входимо...' : 'Увійти'}
+                        {loading ? 'Logging in...' : 'Login'}
                     </button>
                 </form>
 
                 <div className="auth-links">
-                    <p>Не маєте акаунту? <Link to="/register">Зареєструватись</Link></p>
-                    <p><Link to="/forgot-password">Забули пароль?</Link></p>
+                    <p>Don't have an account? <Link to="/register">Register</Link></p>
+                    <p><Link to="/forgot-password">Forgot Password?</Link></p>
                 </div>
             </div>
         </div>
