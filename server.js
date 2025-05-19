@@ -58,14 +58,6 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Import API routes
-const wishlistRoutes = require('./api/wishlist');
-const purchaseHistoryRoutes = require('./api/purchase-history');
-
-// API routes
-app.use('/api/wishlist', wishlistRoutes);
-app.use('/api/purchase-history', purchaseHistoryRoutes);
-
 // Handle all other routes by serving the React app
 // This ensures React Router can handle client-side routing
 app.get('*', (req, res) => {

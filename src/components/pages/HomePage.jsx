@@ -85,21 +85,21 @@ function HomePage() {
                         checked={showAvailableOnly}
                         onChange={(e) => setShowAvailableOnly(e.target.checked)}
                     />
-                    <label htmlFor="show-available-only">Показувати тільки доступні продукти</label>
+                    <label htmlFor="show-available-only">Show Available Products Only</label>
                 </div>
 
                 <div className="sort-container">
-                    <label htmlFor="sort-select">Сортувати за: </label>
+                    <label htmlFor="sort-select">Sort by: </label>
                     <select
                         id="sort-select"
                         value={sortBy}
                         onChange={handleSortChange}
                     >
-                        <option value="default">Без сортування</option>
-                        <option value="price-asc">Ціна: Менше-Більше</option>
-                        <option value="price-desc">Ціна: Більше-Менше</option>
-                        <option value="rating-asc">Рейтинг: Менше-Більше</option>
-                        <option value="rating-desc">Рейтинг: Більше-Менше</option>
+                        <option value="default">Default</option>
+                        <option value="price-asc">Price: Low to High</option>
+                        <option value="price-desc">Price: High to Low</option>
+                        <option value="rating-asc">Rating: Low to High</option>
+                        <option value="rating-desc">Rating: High to Low</option>
                     </select>
                 </div>
             </div>
