@@ -10,18 +10,8 @@ function ProductPage() {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [notification, setNotification] = useState(null);
     const { addToCart, isInCart } = useContext(CartContext);
-    const {
-        currentUser,
-        addToWishlist,
-        isInWishlist,
-        removeFromWishlist,
-        wishlistLoading
-    } = useContext(AuthContext);
-
-    // Додали стан для відстеження статусу товару в списку бажаного
-    const [inWishlist, setInWishlist] = useState(false);
+    const { currentUser, addToWishlist, isInWishlist, removeFromWishlist } = useContext(AuthContext);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -33,11 +23,11 @@ function ProductPage() {
                     setProduct(productData);
                     setError(null);
                 } else {
-                    setError('Товар не знайдено');
+                    setError('Product not found');
                 }
             } catch (err) {
                 console.error(`Error fetching product with ID ${id}:`, err);
-                setError('Помилка завантаження товару. Спробуйте пізніше.');
+                setError('Failed to load product. Please try again later.');
             } finally {
                 setLoading(false);
             }
@@ -46,54 +36,31 @@ function ProductPage() {
         fetchProduct();
     }, [id]);
 
-    // Update wishlist status when product or currentUser changes
-    useEffect(() => {
-        if (currentUser && product) {
-            setInWishlist(isInWishlist(product.id));
-        } else {
-            setInWishlist(false);
-        }
-    }, [currentUser, product, isInWishlist]);
+    if (loading) {
+        return <div className="product-page loading">Loading product details...</div>;
+    }
 
-    // Show notifications
-    const showNotification = (message, type = 'success') => {
-        setNotification({ message, type });
-        setTimeout(() => setNotification(null), 3000);
-    };
+    if (error || !product) {
+        return <div className="product-page error"><h2>{error || 'Product not found'}</h2></div>;
+    }
 
     const handleAddToCart = () => {
         if (product.available) {
             addToCart(product);
-            showNotification('Товар додано до кошика!');
         }
     };
 
-    const handleWishlist = async () => {
-        try {
-            if (!currentUser) {
-                showNotification('Будь ласка, увійдіть, щоб додавати товари до списку бажаного', 'error');
-                return;
-            }
+    const handleWishlist = () => {
+        if (!currentUser) {
+            // Redirect to login or show a message
+            alert("Please log in to add items to your wishlist");
+            return;
+        }
 
-            if (inWishlist) {
-                const result = await removeFromWishlist(product.id);
-                if (result.success) {
-                    setInWishlist(false);
-                    showNotification('Товар видалено зі списку бажаного');
-                }
-            } else {
-                const result = await addToWishlist(product);
-                if (result.success) {
-                    setInWishlist(true);
-                    showNotification('Товар додано до списку бажаного');
-                }
-            }
-        } catch (error) {
-            console.error('Wishlist operation error:', error);
-            showNotification(
-                error.message || 'Помилка при роботі зі списком бажаного. Спробуйте пізніше.',
-                'error'
-            );
+        if (isInWishlist(product.id)) {
+            removeFromWishlist(product.id);
+        } else {
+            addToWishlist(product);
         }
     };
 
@@ -111,52 +78,32 @@ function ProductPage() {
 
     const renderCartButton = () => {
         if (!product.available) {
-            return <button id="add-to-cart" disabled className="disabled">❌ Недоступно</button>;
+            return <button id="add-to-cart" disabled className="disabled">❌ Out of Stock</button>;
         }
 
         if (isInCart(product.id)) {
-            return <button id="add-to-cart" className="in-cart" onClick={handleAddToCart}>✓ У кошику</button>;
+            return <button id="add-to-cart" className="in-cart" onClick={handleAddToCart}>✓ Added to Cart</button>;
         }
 
-        return <button id="add-to-cart" onClick={handleAddToCart}>🛒 Додати до кошика</button>;
+        return <button id="add-to-cart" onClick={handleAddToCart}>🛒 Add to Cart</button>;
     };
 
     const renderWishlistButton = () => {
+        const inWishlist = currentUser && isInWishlist(product.id);
         return (
             <button
                 id="add-to-wishlist"
-                className={`${inWishlist ? 'in-wishlist' : ''} ${wishlistLoading ? 'loading' : ''}`}
+                className={inWishlist ? 'in-wishlist' : ''}
                 onClick={handleWishlist}
-                disabled={wishlistLoading}
             >
-                {wishlistLoading ? (
-                    <span className="loading-spinner">⟳</span>
-                ) : (
-                    <>
-                        {inWishlist ? '❤️' : '🤍'}
-                        {inWishlist ? 'У списку бажаного' : 'Додати до бажаного'}
-                    </>
-                )}
+                {inWishlist ? '❤️' : '🤍'}
+                {inWishlist ? 'In Wishlist' : 'Add to Wishlist'}
             </button>
         );
     };
 
-    if (loading) {
-        return <div className="product-page loading">Завантаження товару...</div>;
-    }
-
-    if (error || !product) {
-        return <div className="product-page error"><h2>{error || 'Товар не знайдено'}</h2></div>;
-    }
-
     return (
         <main>
-            {notification && (
-                <div className={`notification ${notification.type}`}>
-                    {notification.message}
-                </div>
-            )}
-
             <div className="product-page">
                 <div className="image-container">
                     <img id="product-image" src={product.image} alt={product.name} />
@@ -165,9 +112,9 @@ function ProductPage() {
                     <h2 id="product-name">{product.name}</h2>
                     {renderPrice()}
                     <p id="product-status">
-                        {product.available ? "✔ В наявності" : "❌ Недоступно"}
+                        {product.available ? "✔ Available" : "❌ Out of stock"}
                     </p>
-                    <p id="product-rating">Рейтинг: {product.rating}</p>
+                    <p id="product-rating">Rating: {product.rating}</p>
                     <p id="product-description">{product.description}</p>
                     <div className="product-actions">
                         {renderCartButton()}
@@ -175,7 +122,7 @@ function ProductPage() {
                     </div>
                     {!currentUser && (
                         <p className="login-prompt">
-                            <Link to="/login">Увійдіть</Link> щоб зберігати товари у список бажаного
+                            <Link to="/login">Log in</Link> to save items to your wishlist
                         </p>
                     )}
                 </div>

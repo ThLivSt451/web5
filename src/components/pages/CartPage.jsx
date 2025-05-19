@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { CartContext } from '../../context/CartContext';
+import { AuthContext } from '../../context/AuthContext';
 import '../../styles/cart.css';
 
 function CartPage() {
@@ -12,6 +13,8 @@ function CartPage() {
         clearCart
     } = useContext(CartContext);
 
+    const { currentUser, addToPurchaseHistory } = useContext(AuthContext);
+
     const handleQuantityChange = (id, newQuantity) => {
         if (newQuantity > 0) {
             updateQuantity(id, newQuantity);
@@ -20,28 +23,48 @@ function CartPage() {
 
     const handleCheckout = () => {
         if (cart.length > 0) {
-            alert(`Дякуємо за покупку! Сума покупки становить ${getTotalPrice().toFixed(2)} UAH`);
+            const total = getTotalPrice();
+
+            // Record purchases in user history if logged in
+            if (currentUser) {
+                const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+                // Add each cart item to purchase history
+                cart.forEach(item => {
+                    const purchaseRecord = {
+                        item: item.name,
+                        price: item.price,
+                        quantity: item.quantity,
+                        date: currentDate,
+                        productId: item.id
+                    };
+
+                    addToPurchaseHistory(purchaseRecord);
+                });
+            }
+
+            alert(`Thank you for your order! Your total is ${total.toFixed(2)} UAH`);
             clearCart();
         }
     };
 
     return (
         <div className="cart-container">
-            <Link to="/" className="continue-shopping">← Продовжити покупки</Link>
-            <h2>🛒 Ваш кошик</h2>
+            <Link to="/" className="continue-shopping">← Continue Shopping</Link>
+            <h2>🛒 Your Shopping Cart</h2>
 
             <div id="cart-container">
                 {cart.length === 0 ? (
-                    <p id="empty-cart">Ваш кошик пустий.</p>
+                    <p id="empty-cart">Your cart is empty.</p>
                 ) : (
                     <table id="cart-table">
                         <thead>
                         <tr>
-                            <th>Товар</th>
-                            <th>Ціна</th>
-                            <th>Кількість</th>
-                            <th>Сума</th>
-                            <th>Видалити</th>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                            <th>Remove</th>
                         </tr>
                         </thead>
                         <tbody id="cart-items">
@@ -99,7 +122,12 @@ function CartPage() {
             {cart.length > 0 && (
                 <div id="cart-summary">
                     <h3>Total: <span id="total-price">{getTotalPrice().toFixed(2)} UAH</span></h3>
-                    <button id="checkout-button" onClick={handleCheckout}>Оплата</button>
+                    <button id="checkout-button" onClick={handleCheckout}>Proceed to Checkout</button>
+                    {!currentUser && (
+                        <p className="login-prompt">
+                            <Link to="/login">Log in</Link> to save your purchase history
+                        </p>
+                    )}
                 </div>
             )}
         </div>

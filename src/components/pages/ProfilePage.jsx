@@ -12,11 +12,9 @@ function ProfilePage() {
         fullName: '',
         email: ''
     });
-    const [activeTab, setActiveTab] = useState('wishlist'); // Changed default tab to 'wishlist' to test
-    const [wishlistItems, setWishlistItems] = useState([]);
+    const [activeTab, setActiveTab] = useState('purchases'); // 'purchases' or 'wishlist'
     const navigate = useNavigate();
 
-    // Update user data when currentUser changes
     useEffect(() => {
         if (!currentUser) {
             navigate('/login');
@@ -27,11 +25,6 @@ function ProfilePage() {
             fullName: currentUser.displayName || '',
             email: currentUser.email || ''
         });
-
-        // Update wishlist items state from currentUser
-        if (currentUser.wishlist) {
-            setWishlistItems(currentUser.wishlist);
-        }
     }, [currentUser, navigate]);
 
     const handleLogout = async () => {
@@ -74,27 +67,16 @@ function ProfilePage() {
 
     const handleAddToCart = (product) => {
         addToCart(product);
-        alert(`${product.name} додано до кошику!`);
+        alert(`${product.name} added to cart!`);
     };
 
-    const handleRemoveFromWishlist = async (productId) => {
-        try {
-            const result = await removeFromWishlist(productId);
-            if (result.success) {
-                // Оновлення локального стану списку бажаного
-                setWishlistItems(prevItems => prevItems.filter(item => item.id !== productId));
-            }
-        } catch (error) {
-            console.error('Failed to remove from wishlist:', error);
-        }
+    const handleRemoveFromWishlist = (productId) => {
+        removeFromWishlist(productId);
     };
 
     if (!currentUser) {
         return <div>Loading...</div>;
     }
-
-    // Ensure wishlist is always an array
-    const wishlist = currentUser.wishlist || [];
 
     return (
         <section className="profile-container">
@@ -112,8 +94,8 @@ function ProfilePage() {
                                 className="edit-input"
                             />
                             <div className="edit-actions">
-                                <button onClick={handleSave} className="save-btn">Зберегти</button>
-                                <button onClick={handleEditToggle} className="cancel-btn">Відміна</button>
+                                <button onClick={handleSave} className="save-btn">Save</button>
+                                <button onClick={handleEditToggle} className="cancel-btn">Cancel</button>
                             </div>
                         </div>
                     ) : (
@@ -121,8 +103,8 @@ function ProfilePage() {
                             <h2>{currentUser.displayName || 'User'}</h2>
                             <p>Email: {currentUser.email}</p>
                             <div className="profile-actions">
-                                <button className="edit-profile" onClick={handleEditToggle}>Редагувати профіль</button>
-                                <button className="logout-btn" onClick={handleLogout}>Вийти</button>
+                                <button className="edit-profile" onClick={handleEditToggle}>Edit Profile</button>
+                                <button className="logout-btn" onClick={handleLogout}>Logout</button>
                             </div>
                         </>
                     )}
@@ -151,10 +133,10 @@ function ProfilePage() {
                         <table className="purchase-table">
                             <thead>
                             <tr>
-                                <th>Товар</th>
-                                <th>Ціна</th>
-                                <th>К-сть</th>
-                                <th>Дата</th>
+                                <th>Item</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Date</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -170,8 +152,8 @@ function ProfilePage() {
                         </table>
                     ) : (
                         <div className="empty-state">
-                            <p>Ви не здійснювали покупок (поки).</p>
-                            <Link to="/">Почати покупки</Link>
+                            <p>No purchase history yet.</p>
+                            <Link to="/">Start shopping</Link>
                         </div>
                     )}
                 </div>
@@ -180,11 +162,9 @@ function ProfilePage() {
             {activeTab === 'wishlist' && (
                 <div className="profile-section">
                     <h3>Wishlist</h3>
-                    {/* Додано консоль-лог для налагодження */}
-                    {console.log('Current wishlist items:', wishlist)}
-                    {wishlist && wishlist.length > 0 ? (
+                    {currentUser.wishlist && currentUser.wishlist.length > 0 ? (
                         <div className="wishlist-items">
-                            {wishlist.map((item, index) => (
+                            {currentUser.wishlist.map((item, index) => (
                                 <div key={index} className="wishlist-item">
                                     <img src={item.image} alt={item.name} />
                                     <div className="wishlist-item-info">
@@ -195,7 +175,7 @@ function ProfilePage() {
                                                 className="wishlist-add-to-cart"
                                                 onClick={() => handleAddToCart(item)}
                                             >
-                                                🛒 Додати до кошика
+                                                🛒 Add to Cart
                                             </button>
                                             <button
                                                 className="wishlist-remove-btn"
@@ -210,8 +190,8 @@ function ProfilePage() {
                         </div>
                     ) : (
                         <div className="empty-state">
-                            <p>Ваш список бажаного пустий.</p>
-                            <Link to="/">Знайти товари</Link>
+                            <p>Your wishlist is empty.</p>
+                            <Link to="/">Browse products</Link>
                         </div>
                     )}
                 </div>

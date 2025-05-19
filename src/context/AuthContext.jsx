@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -8,14 +8,20 @@ import {
     updateProfile,
     onAuthStateChanged
 } from 'firebase/auth';
+import {
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    arrayUnion,
+    arrayRemove
+} from 'firebase/firestore';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [wishlistLoading, setWishlistLoading] = useState(false);
-    const [lastWishlistUpdate, setLastWishlistUpdate] = useState(null);
 
     // Register a new user
     const register = async (email, password, displayName) => {
@@ -24,14 +30,12 @@ export const AuthProvider = ({ children }) => {
             // Update profile with display name
             await updateProfile(userCredential.user, { displayName });
 
-            // Initialize user data in Firestore through the API
-            const token = await userCredential.user.getIdToken();
-            await fetch('/api/wishlist', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+            // Initialize user document in Firestore
+            await setDoc(doc(db, 'users', userCredential.user.uid), {
+                email: userCredential.user.email,
+                displayName,
+                wishlist: [],
+                purchaseHistory: []
             });
 
             return userCredential.user;
@@ -77,11 +81,17 @@ export const AuthProvider = ({ children }) => {
         try {
             await updateProfile(auth.currentUser, userData);
 
+            // Update user document in Firestore
+            const userRef = doc(db, 'users', userId);
+            await updateDoc(userRef, {
+                displayName: userData.displayName
+            });
+
             // Refresh user object
-            setCurrentUser(prevUser => ({
-                ...prevUser,
+            setCurrentUser({
+                ...currentUser,
                 ...userData
-            }));
+            });
 
             return true;
         } catch (error) {
@@ -90,194 +100,110 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    /**
-     * Improved addToWishlist function with better state management and error handling
-     * @param {Object} product - The product to add to wishlist
-     * @returns {Promise<Object>} - Result of the operation
-     */
+    // Add to wishlist
     const addToWishlist = async (product) => {
         try {
             if (!currentUser) {
                 throw new Error('User not authenticated');
             }
 
-            // Set loading state
-            setWishlistLoading(true);
-
-            // Check if product is already in wishlist locally
-            const isAlreadyInWishlist = isInWishlist(product.id);
-            if (isAlreadyInWishlist) {
-                setWishlistLoading(false);
-                return { success: true, message: 'Product already in wishlist' };
-            }
-
-            // Get authentication token
-            const token = await auth.currentUser.getIdToken();
-
-            // Send request to API
-            const response = await fetch('/api/wishlist/add', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ product })
+            // Add product to the user's wishlist in Firestore
+            const userRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userRef, {
+                wishlist: arrayUnion(product)
             });
 
-            // Check HTTP response
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to add to wishlist');
+            // Update local user state
+            const updatedWishlist = [...(currentUser.wishlist || [])];
+            if (!updatedWishlist.some(item => item.id === product.id)) {
+                updatedWishlist.push(product);
             }
 
-            // Parse response data
-            const data = await response.json();
-
-            // Update local user state with optimistic update
-            setCurrentUser(prevUser => {
-                // Make sure wishlist is always an array
-                const currentWishlist = Array.isArray(prevUser.wishlist) ? prevUser.wishlist : [];
-
-                // Check if product is already in the list
-                if (!currentWishlist.some(item => item.id === product.id)) {
-                    // Add new product to the list
-                    return {
-                        ...prevUser,
-                        wishlist: [...currentWishlist, product]
-                    };
-                }
-                return prevUser;
+            setCurrentUser({
+                ...currentUser,
+                wishlist: updatedWishlist
             });
 
-            // Record time of update for potential refreshes
-            setLastWishlistUpdate(new Date());
-            setWishlistLoading(false);
-            return { success: true, message: data.message || 'Product added to wishlist' };
+            return true;
         } catch (error) {
-            setWishlistLoading(false);
             console.error('Add to wishlist error:', error);
             throw error;
         }
     };
 
-    /**
-     * Improved removeFromWishlist function with better state management
-     * @param {string} productId - ID of the product to remove
-     * @returns {Promise<Object>} - Result of the operation
-     */
+    // Remove from wishlist
     const removeFromWishlist = async (productId) => {
         try {
             if (!currentUser) {
                 throw new Error('User not authenticated');
             }
 
-            setWishlistLoading(true);
-
-            // Get authentication token
-            const token = await auth.currentUser.getIdToken();
-
-            // Call API to remove item
-            const response = await fetch(`/api/wishlist/remove/${productId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            // Check for API errors
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to remove from wishlist');
+            // Find the product to remove
+            const productToRemove = currentUser.wishlist.find(item => item.id === productId);
+            if (!productToRemove) {
+                throw new Error('Product not found in wishlist');
             }
 
-            const data = await response.json();
-
-            // Update local state with optimistic update
-            setCurrentUser(prevUser => {
-                // Ensure wishlist exists and is an array
-                if (prevUser && Array.isArray(prevUser.wishlist)) {
-                    return {
-                        ...prevUser,
-                        wishlist: prevUser.wishlist.filter(item => item.id !== productId)
-                    };
-                }
-                return prevUser;
+            // Remove product from the user's wishlist in Firestore
+            const userRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userRef, {
+                wishlist: arrayRemove(productToRemove)
             });
 
-            // Record time of update for potential refreshes
-            setLastWishlistUpdate(new Date());
-            setWishlistLoading(false);
-            return { success: true, message: data.message || 'Product removed from wishlist' };
+            // Update local user state
+            const updatedWishlist = (currentUser.wishlist || []).filter(
+                item => item.id !== productId
+            );
+
+            setCurrentUser({
+                ...currentUser,
+                wishlist: updatedWishlist
+            });
+
+            return true;
         } catch (error) {
-            setWishlistLoading(false);
             console.error('Remove from wishlist error:', error);
             throw error;
         }
     };
 
-    /**
-     * Check if product is in wishlist
-     * @param {string} productId - ID of the product to check
-     * @returns {boolean} - True if product is in wishlist
-     */
+    // Add to purchase history
+    const addToPurchaseHistory = async (purchaseRecord) => {
+        try {
+            if (!currentUser) {
+                throw new Error('User not authenticated');
+            }
+
+            // Add purchase to the user's history in Firestore
+            const userRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userRef, {
+                purchaseHistory: arrayUnion(purchaseRecord)
+            });
+
+            // Update local user state
+            const updatedPurchaseHistory = [...(currentUser.purchaseHistory || []), purchaseRecord];
+
+            setCurrentUser({
+                ...currentUser,
+                purchaseHistory: updatedPurchaseHistory
+            });
+
+            return true;
+        } catch (error) {
+            console.error('Add to purchase history error:', error);
+            throw error;
+        }
+    };
+
+    // Check if product is in wishlist
     const isInWishlist = (productId) => {
-        if (!currentUser || !Array.isArray(currentUser.wishlist)) {
+        if (!currentUser || !currentUser.wishlist) {
             return false;
         }
         return currentUser.wishlist.some(item => item.id === productId);
     };
 
-    /**
-     * Refreshes wishlist data from the server
-     * @returns {Promise<Array>} - The updated wishlist
-     */
-    const refreshWishlist = async () => {
-        try {
-            if (!currentUser || !currentUser.uid) {
-                return [];
-            }
-
-            // Get authentication token
-            const token = await auth.currentUser.getIdToken();
-
-            // Fetch wishlist from API
-            const response = await fetch('/api/wishlist', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to refresh wishlist');
-            }
-
-            const data = await response.json();
-
-            // Ensure wishlist is always an array
-            const wishlistData = Array.isArray(data.wishlist) ? data.wishlist : [];
-
-            // Update user state with fresh data
-            setCurrentUser(prevUser => ({
-                ...prevUser,
-                wishlist: wishlistData
-            }));
-
-            // Update the last refresh timestamp
-            setLastWishlistUpdate(new Date());
-
-            return wishlistData;
-        } catch (error) {
-            console.error('Error refreshing wishlist:', error);
-            return currentUser?.wishlist || [];
-        }
-    };
-
-    /**
-     * Initialize user data with wishlist and purchase history
-     * @param {Object} user - Firebase user object
-     */
+    // Initialize user data
     const initializeUserData = async (user) => {
         if (!user) {
             setCurrentUser(null);
@@ -285,43 +211,31 @@ export const AuthProvider = ({ children }) => {
         }
 
         try {
-            // Get user token
-            const token = await user.getIdToken();
+            // Fetch user data from Firestore
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
 
-            // Fetch user's wishlist from API
-            const response = await fetch('/api/wishlist', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            if (userDoc.exists()) {
+                // User exists in Firestore, get their data
+                const userData = userDoc.data();
 
-            if (response.ok) {
-                const data = await response.json();
-
-                // Ensure wishlist is always an array
-                const wishlistData = Array.isArray(data.wishlist) ? data.wishlist : [];
-
-                // Get purchase history (in a real app, this would be another API endpoint)
-                // For now, we'll mock an empty purchase history
-                const purchaseHistory = [];
-
-                // Set complete user data with wishlist and purchase history
                 setCurrentUser({
                     uid: user.uid,
                     email: user.email,
-                    displayName: user.displayName,
+                    displayName: user.displayName || userData.displayName,
                     photoURL: user.photoURL,
                     emailVerified: user.emailVerified,
-                    wishlist: wishlistData,
-                    purchaseHistory: purchaseHistory
+                    wishlist: userData.wishlist || [],
+                    purchaseHistory: userData.purchaseHistory || []
+                });
+            } else {
+                // User doesn't exist in Firestore yet, create them
+                await setDoc(doc(db, 'users', user.uid), {
+                    email: user.email,
+                    displayName: user.displayName || '',
+                    wishlist: [],
+                    purchaseHistory: []
                 });
 
-                // Set the initial wishlist update timestamp
-                setLastWishlistUpdate(new Date());
-            } else {
-                console.warn('Failed to fetch wishlist data, initializing with empty array');
-                // Set basic user data without wishlist
                 setCurrentUser({
                     uid: user.uid,
                     email: user.email,
@@ -361,27 +275,6 @@ export const AuthProvider = ({ children }) => {
         return unsubscribe;
     }, []);
 
-    // Auto-refresh wishlist periodically when user is logged in
-    useEffect(() => {
-        let refreshInterval;
-
-        if (currentUser?.uid) {
-            // Refresh immediately on mount
-            refreshWishlist();
-
-            // Set up periodic refresh (every 5 minutes)
-            refreshInterval = setInterval(() => {
-                refreshWishlist();
-            }, 5 * 60 * 1000);
-        }
-
-        return () => {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
-            }
-        };
-    }, [currentUser?.uid]);
-
     const value = {
         currentUser,
         register,
@@ -391,11 +284,9 @@ export const AuthProvider = ({ children }) => {
         updateUserData,
         addToWishlist,
         removeFromWishlist,
+        addToPurchaseHistory,
         isInWishlist,
-        refreshWishlist,
-        loading,
-        wishlistLoading,
-        lastWishlistUpdate
+        loading
     };
 
     return (
